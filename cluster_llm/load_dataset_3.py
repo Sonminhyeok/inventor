@@ -6,7 +6,7 @@ import datetime
 from dateutil.relativedelta import relativedelta
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from openai import OpenAI
-os.environ["OPENAI_API_KEY"] = "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"
+from common.static.config import config
 from preprocessing_data.extract_ctr import extract_samename_list, extract_kr , merge_to_csv
 from preprocessing_data.utils import get_datetime_by_applicant, get_data_by_name, str_to_datetime, datetime_to_str
 from preprocessing_data.langchain_utils import fewshot_chain
@@ -15,7 +15,7 @@ db_applicant= pd.read_csv("./../dataset/db_applicant.csv")
 model = "gpt-3.5-turbo"
 question = "hi"
 client= OpenAI()
-
+openai_api_key = config['KEY']['openai_api_key']
 name_list= kr_samename["발명자"].to_list()
 applicant_list = kr_samename["출원인"].to_list()
 date_list = kr_samename["출원일"].to_list()
