@@ -9,7 +9,7 @@ from openai import OpenAI
 from common.static.config import config
 from preprocessing_data.extract_ctr import extract_samename_list, extract_kr , merge_to_csv
 from preprocessing_data.utils import get_datetime_by_applicant, get_data_by_name, str_to_datetime, datetime_to_str
-from preprocessing_data.langchain_utils import fewshot_chain
+
 kr_samename=pd.read_csv("./../dataset/kr_samename.csv")
 db_applicant= pd.read_csv("./../dataset/db_applicant.csv")
 model = "gpt-3.5-turbo"
