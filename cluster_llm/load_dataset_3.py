@@ -14,8 +14,9 @@ kr_samename=pd.read_csv("./../dataset/kr_samename.csv")
 db_applicant= pd.read_csv("./../dataset/db_applicant.csv")
 model = "gpt-3.5-turbo"
 question = "hi"
-client= OpenAI()
+
 openai_api_key = config['KEY']['openai_api_key']
+client= OpenAI(api_key=openai_api_key)
 name_list= kr_samename["발명자"].to_list()
 applicant_list = kr_samename["출원인"].to_list()
 date_list = kr_samename["출원일"].to_list()
@@ -25,17 +26,7 @@ address_list = kr_samename["주소"].to_list()
 name_list_db=db_applicant["name"].to_list()
 applicant_list_db = []
 
-""" 
-applicant 부분이 dict 형식으로 바뀌거나 해야할듯
-지금 문제가 뭐냐면, 같은 사람인데, 회사가 바뀌었을 때, 이력을 추적할 방법이 없음.
-따라서 출원인에 따라 이력을 저장하고 비교해야함. {applicant, address, start, end} 순으로 리스트를 만들어서 2중 리스트를 만들던가, 
-아니면 dict로 {
-    "applicant": applicant,
-    "address": address,
-    "start": start,
-    "end": end
-} 이렇게 해야함. 월요일에 오면 dict로 먼저 바꿔보고 안되면 2중 list를 시도하도록 하자.
-"""
+
 try:
     for name, applicant, date, address in zip(name_list, applicant_list, date_list, address_list):
         x = str_to_datetime(date)
@@ -54,6 +45,7 @@ try:
                     }
                 ]
             })
+            continue
         else:
             # applicant_list_db에 name이 존재하는지 확인
             inventor_dict = next((d for d in applicant_list_db if d['name'] == name), None)
@@ -70,6 +62,7 @@ try:
                         }
                     ]
                 })
+                continue
             else:
                 # name이 존재하는 경우
                 matched_record = next((r for r in inventor_dict['record'] if r['applicant'] == applicant), None)
@@ -78,17 +71,20 @@ try:
                     # 같은 출원인인 경우
                     if x + dif_1m > get_datetime_by_applicant(inventor_dict['record'], applicant, "end"):
                         matched_record["end"] = datetime_to_str(x + dif_1m)
+                        continue
                     elif x <= get_datetime_by_applicant(inventor_dict['record'], applicant, "start"):
                         matched_record["start"] = datetime_to_str(x - dif_1m)
+                        continue
                 else:
+                    #같은 출원인이 아니고, 날짜가 겹치는 경우 동명이인판정 부분 빠진 것 같음.
                     # 새로운 출원인인 경우
-                    inventor_dict['record'].append({
-                        "applicant": applicant,
-                        "address": address,
-                        "start": date,
-                        "end": datetime_to_str(x + dif_1m)
-                    })
-
+                    # inventor_dict['record'].append({
+                    #     "applicant": applicant,
+                    #     "address": address,
+                    #     "start": date,
+                    #     "end": datetime_to_str(x + dif_1m)
+                    # })
+                    # print(name)
                     # 주소 병합 로직
                     case2 = next((r for r in inventor_dict['record'] if r['applicant'] != applicant), None)
                     if case2:
@@ -103,7 +99,7 @@ try:
                             model="gpt-3.5-turbo",
                         )
                         result = message.choices[0].message.content
-                        if result != "No":
+                        if result != "No": #주소일치 yes 파트
                             case2["address"]= result
                             inventor_dict['record'].append({
                                 "applicant": applicant,
@@ -111,7 +107,9 @@ try:
                                 "start": date,
                                 "end": datetime_to_str(x + dif_1m)
                             })
-                        else:
+                            continue
+                            
+                        else:# 주소일치의 no 파트
                             applicant_list_db.append({
                                 "name": name,
                                 "record": [
@@ -123,14 +121,16 @@ try:
                                     }
                                 ]
                             })
+                            continue
 except:
-    result_df = pd.DataFrame()
-    # result_df["name"]=name_list_db
-    result_df["name"]=applicant_list_db["name"]
-    result_df["record"]=applicant_list_db["record"]
+    result_df = pd.DataFrame(columns=["name", "record"])
+    result_df["name"] = [d["name"] for d in applicant_list_db]
+
+    # "record" 열을 문자열로 변환하여 저장
+    result_df["record"] = [str(d["record"]) for d in applicant_list_db]
     
 
-    result_df.to_csv("./../dataset/result.csv",index=False)
+    result_df.to_csv("./../dataset/result2.csv",index=False,encoding="utf8")
 
 
 
