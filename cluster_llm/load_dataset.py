@@ -8,11 +8,10 @@ from dateutil.relativedelta import relativedelta
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from openai import OpenAI
 from common.static.config import config
-from preprocessing_data.extract_ctr import extract_samename, extract_kr , merge_to_csv
+from preprocessing_data.extract_ctr import *
 from preprocessing_data.utils import *
 
 def load_data(kr_samename):
-
     db_applicant= pd.read_csv("./../dataset/db_applicant.csv")
     model = "gpt-3.5-turbo"
     openai_api_key = config['KEY']['openai_api_key']
@@ -65,9 +64,15 @@ def load_data(kr_samename):
                 else:
                     no_list=[]
                     for inventor_dict in inventor_dicts:
+                        for i in range(0,len(inventor_dict["record"])):
+                            common_applicant = find_common_item(applicant,inventor_dict["record"][i]["applicant"])
+                            if common_applicant != "No":
+                                inventor_dict["record"][i]["applicant"]= common_applicant
+                                applicant=common_applicant
                         matched_record = next((r for r in inventor_dict['record'] if r['applicant'] == applicant), None)
                         if matched_record:
                             # 같은 출원인인 경우
+                        
                             if x + dif_1m > get_datetime_by_applicant(inventor_dict['record'], applicant, "end"):
                                 matched_record["end"] = datetime_to_str(x + dif_1m)
                                 continue
@@ -78,7 +83,7 @@ def load_data(kr_samename):
                             case2 = next((r for r in inventor_dict['record'] if r['applicant'] != applicant), None)
                             if case2:
                                 previous_address = case2["address"]
-                                result = find_common_address(address, previous_address)
+                                result = find_common_item(address, previous_address)
                             if result != "No":
                                 inventor_dict['record'].append({
                                     "applicant": applicant,
@@ -103,7 +108,7 @@ def load_data(kr_samename):
                                             }
                                         ]
                                     })
-                            
+       
         result_df = pd.DataFrame(columns=["name", "record"])
         result_df["name"] = [d["name"] for d in applicant_list_db]
 
@@ -113,6 +118,7 @@ def load_data(kr_samename):
 
         result_df.to_csv("./../dataset/result.csv",index=False,encoding="utf8")
     except:
+        print("errororororor")
         result_df = pd.DataFrame(columns=["name", "record"])
         result_df["name"] = [d["name"] for d in applicant_list_db]
 
@@ -124,9 +130,9 @@ def load_data(kr_samename):
 
 if __name__ == "__main__":
     df=pd.read_csv("./../dataset/kr_samename.csv")
+    # df= explode_split(df, "출원인")
     load_data(df)
 
-    
 
 
     

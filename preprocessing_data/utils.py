@@ -16,10 +16,11 @@ def str_to_datetime(str):
 def datetime_to_str(date):
     return datetime.datetime.strftime(date,"%Y-%m-%d")
 
-def find_common_address(address, previous_address):
+def find_common_item(address, previous_address):
     address_list=address.split("|")
     previous_address_list=previous_address.split("|")
     common_address_list=[]
+    
     for address1 in address_list:
         for address2 in previous_address_list:
             if address1 == address2:
@@ -29,4 +30,3 @@ def find_common_address(address, previous_address):
         return common_address
     else:
         return "No"
-    return common_address
