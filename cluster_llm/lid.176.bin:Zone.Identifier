@@ -1,0 +1,4 @@
+[ZoneTransfer]
+ZoneId=3
+ReferrerUrl=https://fasttext.cc/
+HostUrl=https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin

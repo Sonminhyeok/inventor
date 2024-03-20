@@ -30,22 +30,23 @@ def draw_bars_by_list(num_rows, x, y): #when convert 2-dimlist to graph
     fig.show()
     # fig.write_html('draws_bars_by_list.html', auto_open=True)
 def draw_gantt_by_csv(df, name):
-    
-    df = pd.DataFrame([ast.literal_eval(row) for row in df["record"]])
-    
-    # 특정 이름을 포함하는 행만 필터링
+    list1 =[]
     df = df[df["name"].str.contains(name)]
-    # "start"와 "end" 열의 데이터 타입을 날짜로 변환
-    df["start"] = pd.to_datetime(df["start"])
-    df=df.sort_values(by=["start"])
-    df["end"] = pd.to_datetime(df["end"])
-    fig = px.timeline(df, x_start="start", x_end="end", y="applicant",color="applicant")
+    for i in df["record"]:
+        for m in eval(i):
+            list1.append(m)
+        
+    # print(list1[0])
+    
+    
+    
+    fig = px.timeline(list1, x_start="start", x_end="end", y="applicant",color="applicant")
     fig.update_yaxes(autorange="reversed")  # Y축 역방향으로 설정
     fig.show()
     fig.write_html(f'draws_gantt_by_csv_{name}.html', auto_open=True)
 
 def main():
-    name="김민수"
+    name="소원욱"
     df= pd.read_csv("./../dataset/result.csv")
     
     draw_gantt_by_csv(df,name)
