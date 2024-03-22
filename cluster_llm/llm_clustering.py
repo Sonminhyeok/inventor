@@ -26,7 +26,6 @@ print(result)
 
 
 
-
 # prompt = """
 #     i'll give you a name, and you should convert it in korean.
 #     For example, if I give 'Ju Hwi LEE',  you should answer '이주휘'.
